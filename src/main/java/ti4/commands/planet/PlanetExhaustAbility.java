@@ -3,6 +3,8 @@ package ti4.commands.planet;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
@@ -21,6 +23,7 @@ import ti4.listeners.annotations.ButtonHandler;
 import ti4.map.Game;
 import ti4.map.Player;
 import ti4.message.MessageHelper;
+import ti4.model.LegendaryPlanetModel;
 import ti4.model.PlanetModel;
 import ti4.model.TechnologyModel;
 
@@ -45,15 +48,16 @@ public class PlanetExhaustAbility extends PlanetAddRemove {
     public static void resolveAbility(Player player, String planet, Game game) {
         planet = AliasHandler.resolvePlanet(planet);
         PlanetModel model = Mapper.getPlanet(planet);
+        if (!(model instanceof LegendaryPlanetModel)) {
+            throw new UnsupportedOperationException("Non-legendary planet %s should not have exhaustible abilities!".formatted(planet));
+        }
         MessageChannel channel = player.getCorrectChannel();
 
         String exhaustMsg = player.getFactionEmoji() + " used the " + model.getName() + " ability:";
-        MessageHelper.sendMessageToChannelWithEmbed(channel, exhaustMsg, model.getLegendaryEmbed());
+        MessageHelper.sendMessageToChannelWithEmbed(channel, exhaustMsg, ((LegendaryPlanetModel) model).getLegendaryEmbed());
 
-        String output = "blank";
-        String output2 = "blank";
+        String output = "";
         List<Button> buttons = new ArrayList<>();
-        List<Button> buttons2 = new ArrayList<>();
         switch (planet) {
             // Prophecy of Kings
             case "mallice" -> {
@@ -124,7 +128,7 @@ public class PlanetExhaustAbility extends PlanetAddRemove {
         }
 
         if (!buttons.isEmpty()) buttons.add(Buttons.red("deleteButtons", "Delete these buttons"));
-        if (!"blank".equalsIgnoreCase(output)) {
+        if (StringUtils.isNotBlank(output)) {
             MessageHelper.sendMessageToChannelWithButtons(channel, output, buttons);
         }
     }

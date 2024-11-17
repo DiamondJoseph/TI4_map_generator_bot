@@ -12,7 +12,6 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.emoji.CustomEmoji;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.entities.sticker.Sticker;
-import org.apache.commons.lang3.StringUtils;
 import ti4.AsyncTI4DiscordBot;
 import ti4.generator.TileHelper;
 import ti4.generator.UnitTokenPosition;
@@ -37,9 +36,6 @@ public class PlanetModel implements ModelInterface, EmbeddableModel {
     private List<PlanetTypeModel.PlanetType> planetTypes;
     private String cardImagePath;
     private List<TechSpecialtyModel.TechSpecialty> techSpecialties;
-    private String legendaryAbilityName;
-    private String legendaryAbilityText;
-    private String legendaryAbilityFlavourText;
     private String basicAbilityText;
     private String flavourText;
     private UnitTokenPosition unitPositions;
@@ -92,7 +88,11 @@ public class PlanetModel implements ModelInterface, EmbeddableModel {
     }
 
     public MessageEmbed getRepresentationEmbed(boolean includeAliases) {
-        EmbedBuilder eb = new EmbedBuilder();
+        return getRepresentationBuilder(includeAliases).build();
+    }
+
+    protected EmbedBuilder getRepresentationBuilder(boolean includeAliases) {
+                EmbedBuilder eb = new EmbedBuilder();
 
         StringBuilder sb = new StringBuilder();
         sb.append(getEmoji()).append("__").append(getName()).append("__");
@@ -113,8 +113,6 @@ public class PlanetModel implements ModelInterface, EmbeddableModel {
         if (tile != null) sb.append("\nSystem: ").append(tile.getName());
         eb.setDescription(sb.toString());
         if (getBasicAbilityText() != null) eb.addField("Ability:", getBasicAbilityText(), false);
-        if (getLegendaryAbilityName() != null) eb.addField(Emojis.LegendaryPlanet + getLegendaryAbilityName(), getLegendaryAbilityText(), false);
-        if (getLegendaryAbilityFlavourText() != null) eb.addField("", getLegendaryAbilityFlavourText(), false);
         if (getFlavourText() != null) eb.addField("", getFlavourText(), false);
 
         sb = new StringBuilder();
@@ -124,27 +122,7 @@ public class PlanetModel implements ModelInterface, EmbeddableModel {
 
         if (getStickerOrEmojiURL() != null) eb.setThumbnail(getStickerOrEmojiURL());
 
-        return eb.build();
-    }
-
-    @JsonIgnore
-    public MessageEmbed getLegendaryEmbed() {
-        if (StringUtils.isBlank(getLegendaryAbilityName())) return null; //no ability name, no embed
-        if (StringUtils.isBlank(getLegendaryAbilityText())) return null; //no ability text, no embed
-
-        EmbedBuilder eb = new EmbedBuilder();
-
-        eb.setTitle(Emojis.LegendaryPlanet + "__" + getLegendaryAbilityName() + "__");
-        eb.setColor(Color.black);
-
-        eb.setDescription(getLegendaryAbilityText());
-        //if (getLegendaryAbilityFlavourText() != null) eb.addField("", getLegendaryAbilityFlavourText(), false);
-        if (getStickerOrEmojiURL() != null) eb.setThumbnail(getStickerOrEmojiURL());
-
-        // footer can have some of the planet info
-        //eb.setFooter(getName());
-
-        return eb.build();
+        return eb;
     }
 
     @JsonIgnore
@@ -194,11 +172,6 @@ public class PlanetModel implements ModelInterface, EmbeddableModel {
             }
         }
         return sb.toString();
-    }
-
-    @JsonIgnore
-    public boolean isLegendary() {
-        return getLegendaryAbilityName() != null;
     }
 
     @JsonIgnore
